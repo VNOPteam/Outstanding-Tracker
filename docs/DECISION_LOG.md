@@ -137,4 +137,6 @@ Each phase records: decisions taken, evidence, and the risks that remain open at
 
 | D47 | **ELLIS reflection backlog is not a CEO decision (2026-10-02)**: the rule that raised "ELLIS 반영 지연" under "CEO decision required" (D39) is removed — the CEO does not act on it. The backlog stays in the summary sentence, the "ELLIS 반영 대기" line and the owner actions (record owner / Accounting). The Teams chat card shows the "대표님 결정 필요" block only when a real decision exists (e.g. SOP L1). Applies from the next weekly run. | Operator feedback on the 10-02 card ("대표님이 뭘 할건 아니니까 삭제"). |
 
+| D48 | **Week of 2026-10-09 (first fully automatic run)**: converter tolerates Tier-sheet rows without a Type (new channels HUA MIN TOURISM, SUZHOU YILV). New OP note "Due to holiday, the payment is delayed" is kept as an activity note (no special handling): 11 invoices, JPY 94.2M, China National Day. "Settlement Amendment" appears as an untiered seller (JPY 20,000) — nature to be confirmed. Last week's 21 received-not-in-ELLIS items were all reflected by Accounting. | Observed in the 10-09 workbook. |
+
 Results and remaining risks: `docs/QA_REPORT.md`.

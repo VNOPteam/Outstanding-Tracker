@@ -190,7 +190,7 @@ def main(path, as_of, out):
             customers[cid] = {
                 "customer_id": cid, "customer_name": name,
                 "customer_group": tier_txt or "Untiered",
-                "country": (ch["countryName"] if ch else "Unknown"), "region": (t["type"] if t else ""),
+                "country": (ch["countryName"] if ch else "Unknown"), "region": (str(t["type"]).strip() if t and t.get("type") else ""),
                 "account_owner_id": pic.lower(), "account_owner_name": pic,
                 "finance_owner": None, "contract_currency": ccy, "payment_terms_days": None, "credit_limit": None,
                 "credit_status": "ACTIVE", "customer_status": "ACTIVE", "collection_status": "NORMAL", "risk_grade_manual": None,
