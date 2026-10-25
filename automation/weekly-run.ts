@@ -23,6 +23,8 @@ import { copyFile, mkdir } from 'node:fs/promises';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { createRequire } from 'node:module';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 try {
   if (existsSync('.env')) process.loadEnvFile('.env');
@@ -125,6 +127,22 @@ try {
     }
   }
 
+  // Paste-ready Teams text (same content as the card) for operators who post by hand (no Graph on their PC).
+  let textLine = 'not written';
+  if (result !== 'skipped-duplicate') {
+    try {
+      const { buildCard, cardToText } = createRequire(import.meta.url)('./teams-graph/post-weekly.cjs') as { buildCard: (m: unknown, i: unknown, o: Record<string, unknown>) => unknown; cardToText: (c: unknown) => string };
+      const model = JSON.parse(readFileSync('automation/out/tracker-model.json', 'utf8'));
+      const insight = existsSync('automation/out/insight.json') ? JSON.parse(readFileSync('automation/out/insight.json', 'utf8')) : null;
+      const sharePw = (process.env.TEAMS_CARD_PASSWORD ?? 'true').toLowerCase() !== 'false' ? process.env.DATA_PUBLISH_PASSWORD ?? '' : '';
+      const text = cardToText(buildCard(model, insight, { siteUrl: pipelineEnv.TRACKER_BASE_URL, password: sharePw }));
+      writeFileSync('automation/out/teams-chat-message.txt', text, 'utf8');
+      textLine = `automation/out/teams-chat-message.txt (copy & paste into the Teams chat${sharePw ? '; includes the site password' : ''})`;
+    } catch (e) {
+      textLine = `failed: ${(e as Error).message}`;
+    }
+  }
+
   // Teams via Microsoft Graph (group chat / channel). Dry-run preview unless --push-teams.
   let graphLine = 'not configured (automation/teams-graph/weekly-post-targets.json missing)';
   if (existsSync('automation/teams-graph/weekly-post-targets.json') && result !== 'skipped-duplicate') {
@@ -149,6 +167,7 @@ try {
     'NOT posted (dry run) — preview in automation/out/teams-message.md';
   console.log(`\n── 5/5 done  report ${date}
   Teams Graph: ${graphLine}
+  Teams text : ${textLine}
   Teams hook : ${teams}
   Review     : ${review}
   Message    : automation/out/teams-message.md

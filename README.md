@@ -169,6 +169,11 @@ DATA_SOURCE=file DATA_FILE=automation/input/outstanding-2026-09-28.json REPORT_D
 
 The converter maps the Outstanding / Tier / information sheets (invoices, PIC + Tier, FX) and parses the ELLIS remark notes into payments. The engine then applies the OMH SOP (L1–L4 urgency, ¥500K approval route, Tier collection deadlines; `src/core/sop.ts`).
 
+### Operator guide (English)
+
+`docs/OPERATOR_GUIDE_EN.md` — setup and the weekly routine for an operator without Graph access (paste the generated
+`automation/out/teams-chat-message.txt` into the Teams chat).
+
 ### One command per week
 
 ```bash

@@ -21,9 +21,15 @@ needs to be asked.
    - new sellers without owner/tier, new internal-looking accounts (출장, 하드블럭), unknown columns or note wording
 3. **Refresh the ELLIS channel directory** if the ELLIS MCP `list_channels` tool is available: write
    `automation/input/ellis-channels.json` (fields: sellerCompCode, sellerCompName, countryName, ownerCompCode, ownerCompName, activeYn).
-4. **Run** from the repo root:
+4. **Run** from the repo root. With Graph posting configured (`automation/teams-graph/weekly-post-targets.json` exists,
+   Aiden's PC):
    ```bash
    npm run weekly -- --latest <YYYY-MM-DD> --push --push-teams
+   ```
+   Without it (any other operator, e.g. VNOP): drop `--push-teams`; the run writes `automation/out/teams-chat-message.txt`
+   and the operator pastes that text into the "Outstanding" chat by hand (see `docs/OPERATOR_GUIDE_EN.md`).
+   ```bash
+   npm run weekly -- --latest <YYYY-MM-DD> --push
    ```
    (`.env` holds the site password and settings; never print or commit it.) This converts, runs the pipeline against last
    week's snapshot, builds the review workbook, pushes the encrypted site bundle and posts the card through Microsoft Graph.
@@ -31,8 +37,10 @@ needs to be asked.
    - pipeline `RESULT`, `verification ok=true`, previous snapshot = last week's date
    - review workbook reconciles: ELLIS ledger = open receivables + received-not-in-ELLIS (recalculate in Excel, 0 formula errors)
    - GitHub Actions deploy of the new commit succeeded and the site serves the new `bundle.enc.json`
-   - the runner printed `Teams Graph: posted`; a duplicate attempt must be refused, never forced
-6. **Report back** in Korean: the headline numbers vs last week, what changed, anything that needs the user's decision.
+   - with Graph: the runner printed `Teams Graph: posted`; a duplicate attempt must be refused, never forced
+   - without Graph: `Teams text : automation/out/teams-chat-message.txt` was written; show the operator the path and
+     remind them to paste it once into the "Outstanding" chat
+6. **Report back** in the operator's language (Korean for Aiden, English for VNOP): the headline numbers vs last week, what changed, anything that needs the user's decision.
    Write `handoff/leadership/핵심결론_대표님_재무팀_<date>.md` in the format of the previous weeks and send it with the
    review workbook.
 
@@ -41,6 +49,7 @@ needs to be asked.
 - the converter or pipeline fails, or the workbook layout changed in a way the converter does not understand
 - totals look implausible (e.g. real receivables jump more than 10× or the ledger does not reconcile)
 - a report for the same date was already posted (ask whether a corrected `--resend` is wanted)
+- `git push` is rejected (no write access): deliver the Teams text and the workbook, and tell the operator to ask Aiden to publish the site
 - the Graph token needs an interactive login (`--login`) or the target chat cannot be resolved
 
 ## Conventions that must hold

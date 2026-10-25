@@ -143,4 +143,6 @@ Each phase records: decisions taken, evidence, and the risks that remain open at
 
 | D50 | **Week of 2026-10-23 (run 10-25)**: ELLIS ledger JPY 580.0M of which 566.1M (31 invoices) is received-not-in-ELLIS ("AGT paid – waiting for AC team"); real receivables 13.9M. The 10-16 baseline came from the late dry run (D49); its bundle was never pushed, so the site went from 10-09 to 10-23. ELLIS `list_channels` gained KJ Global (200264). Tier sheet now shows Ctrip Korea = Aiden, KKDAY = Aiden, Webbeds DMC = Jane; confirmed overrides kept and the operator asked. | Observed in the 10-23 workbook. |
 
+| D51 | **Hand-over to a second operator (2026-10-25)**: the weekly run can be done by VNOP on their own PC with Claude Code. Teams posting there is manual: the runner always writes `automation/out/teams-chat-message.txt` (plain-text twin of the card, password included when `TEAMS_CARD_PASSWORD` is not false) for copy-and-paste into the "Outstanding" chat; Graph posting stays Aiden-only. `docs/OPERATOR_GUIDE_EN.md` is the operator spec (setup, weekly routine, stop conditions); the project skill covers both modes. | User request ("비키가 직접 할 수 있도록 명세서 영어로"). |
+
 Results and remaining risks: `docs/QA_REPORT.md`.

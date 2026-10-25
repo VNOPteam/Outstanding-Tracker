@@ -300,7 +300,24 @@ async function main() {
   console.log('명령: chats | resolve [--show-ids] | post [--target=<name>] [--print] [--send] [--resend] [--login]');
 }
 
-module.exports = { buildCard, money };
+/**
+ * Plain-text rendering of the card for operators without Graph access: paste into the Teams compose box.
+ * Same content as the Adaptive Card (figures, decisions, actions, links, optional password line).
+ */
+function cardToText(card) {
+  const strip = (s) => String(s || '').replace(/\*\*/g, '');
+  const lines = [];
+  for (const b of card.body || []) {
+    if (b.type === 'TextBlock') lines.push(strip(b.text).replace('아래 버튼으로', '아래 링크로'));
+    else if (b.type === 'ColumnSet') for (const col of b.columns || []) lines.push(strip((col.items || []).map((i) => i.text).join(' · ')));
+    else if (b.type === 'FactSet') for (const f of b.facts || []) lines.push(`${strip(f.title)}: ${strip(f.value)}`);
+    if (b.separator || b.type === 'ColumnSet' || b.type === 'FactSet') lines.push('');
+  }
+  for (const a of card.actions || []) if (a.type === 'Action.OpenUrl') lines.push(`${a.title}: ${a.url}`);
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
+}
+
+module.exports = { buildCard, money, cardToText };
 if (require.main === module) {
   main().catch((e) => { console.error('ERR:', (e.response && e.response.status) || '', (e.response && e.response.data && e.response.data.error && e.response.data.error.message) || e.message); process.exit(1); });
 }

@@ -41,3 +41,18 @@ describe('Teams (Graph) weekly card', () => {
     expect(money(12_757_968, 'JPY')).toBe('¥12.76M');
   });
 });
+
+describe('paste-ready text version of the card', () => {
+  it('carries the same figures, links and optional password as the card, without markdown bold', async () => {
+    const { cardToText } = require('../../automation/teams-graph/post-weekly.cjs') as { cardToText: (c: unknown) => string };
+    const { model, insight } = await buildFixtureModel('2026-09-05', { lang: 'ko' });
+    const card = buildCard(model, insight, { siteUrl: 'https://x/', password: 'Sample-Pass-123' } as any);
+    const text = cardToText(card);
+    expect(text).toContain('주간 미수금 보고');
+    expect(text).toContain(money(model.kpis.find((k) => k.key === 'total_outstanding')!.value, 'JPY'));
+    expect(text).toContain('트래커 열기: https://x/#/?lang=ko');
+    expect(text).toContain('트래커 접속 비밀번호: Sample-Pass-123');
+    expect(text).not.toContain('**');
+    expect(cardToText(buildCard(model, insight, { siteUrl: 'https://x/' }))).not.toContain('접속 비밀번호:');
+  });
+});
