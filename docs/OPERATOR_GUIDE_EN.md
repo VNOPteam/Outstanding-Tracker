@@ -65,7 +65,9 @@ The figures follow fixed rules (see section 7). The operator does not edit numbe
 1. Save the OP workbook as `Outstanding_Report_<YYYY-MM-DD>.xlsx` in your Downloads folder
    (it must contain the dated tab for this week, e.g. `23-Oct`, plus the `Tier` and `information` sheets).
 2. In Claude Code (project folder open) type:
-   > weekly outstanding report
+   ```
+   weekly outstanding report
+   ```
    Claude checks the workbook against last week, runs the pipeline, publishes the site, writes the memo,
    and tells you where the Teams text is. It stops and asks you when something looks wrong (section 6).
    Manual alternative (same result, no memo):
