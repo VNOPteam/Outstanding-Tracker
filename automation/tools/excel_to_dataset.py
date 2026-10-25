@@ -9,7 +9,7 @@ Mapping (see docs/RUNBOOK_MANUAL_RUN.md):
   Outstanding sheet     -> invoices (+ payments/activities parsed from "Remark Detail (Ellis)")
                            The sheet is either "Outstanding" or a dated tab such as "02-Oct" (the tab matching <as_of>,
                            otherwise the latest dated tab). The previous dated tab is used as last week's reference.
-  "Noted" column        -> "Payment received ..." = money is at the bank but ELLIS is not updated yet (AC team pending).
+  "Noted" column        -> "Payment received ..." / "<payer> paid ..." = money is at the bank but ELLIS is not updated yet (AC team pending).
                            Those invoices are treated as collected in the tracker and queued in the ELLIS reflection
                            chain at stage RECEIVED (recorded_at = null); the ELLIS-ledger figures are kept in the notes.
   Tier sheet            -> customers (PIC(OMH) = account owner, Tier); automation/config/pic-overrides.json wins when present
@@ -43,6 +43,16 @@ CHANNELS_FILE = "automation/input/ellis-channels.json"
 PIC_OVERRIDES_FILE = "automation/config/pic-overrides.json"
 NOTE_HDR = re.compile(r"^\[(\d{4}-\d{2}-\d{2})\]\s*(.+?)\s*\|\s*([\d,\.]+)\s*$")
 DATED_TAB = re.compile(r"^(\d{1,2})[-\s]([A-Za-z]{3})$")
+# OP "Noted" wording for money at the bank, ELLIS not updated: "Payment received, waiting for AC update" (until 10-09);
+# from 10-16 "<payer> paid- waiting for AC team to confirm the invoice on Ellis", "Agent paid, VNOP is checking ...".
+RECEIVED_NOTE = re.compile(r"^payment received|\bpaid\b")
+NOT_RECEIVED_NOTE = re.compile(r"\bunpaid\b|\b(not|partially|partly)\s+paid\b")
+
+
+def seller_token(name):
+    """First word of a seller name (6 chars, 'API' ignored) to spot a note that names a different payer."""
+    words = [w for w in re.sub(r"[^a-z0-9 ]", " ", name.lower()).split() if w != "api"]
+    return words[0][:6] if words and len(words[0]) >= 5 else None
 
 
 def iso(v):
@@ -144,6 +154,8 @@ def main(path, as_of, out):
     unmatched_tier, pic_changed, entity_from_ellis, entity_fallback = set(), set(), set(), set()
     ledger_jpy = pending_jpy = reopen_jpy = 0.0
     ledger_n = pending_n = reopen_n = 0
+    seller_names = {str(r[col["Seller name"]]).strip() for r in inv_rows if r[col["Seller name"]]}
+    payer_mismatch = []
 
     for r in inv_rows:
         inv_no = str(r[col["Invocie No"]]).strip()
@@ -236,10 +248,17 @@ def main(path, as_of, out):
                     "next_action": text.strip() if label == "vnop" else None, "next_action_date": None, "escalation_level": 0, "completed": label != "vnop",
                 })
 
-        # "Payment received ..." => money at the bank, ELLIS not updated yet (stage RECEIVED of the reflection chain)
+        # "Payment received ..." / "<payer> paid ..." => money at the bank, ELLIS not updated yet (stage RECEIVED of the
+        # reflection chain). A note naming another seller of this sheet (copy-paste) is not counted and is flagged.
         ledger_jpy += bal * (rate or 0)
         ledger_n += 1
-        received = noted.lower().startswith("payment received") and bal > 0
+        low = noted.lower()
+        received = bal > 0 and bool(RECEIVED_NOTE.search(low)) and not NOT_RECEIVED_NOTE.search(low)
+        own = seller_token(name)
+        others = {seller_token(s) for s in seller_names if s != name} - {None, own}
+        if received and any(re.search(r"\b" + re.escape(t), low) for t in others):
+            received = False
+            payer_mismatch.append(f"{name} {inv_no} ({ccy} {bal:,.2f}; note: \"{noted}\")")
         if received:
             reopened = "reopen" in noted.lower()
             p = prev.get(inv_no)
@@ -288,6 +307,8 @@ def main(path, as_of, out):
     notes.append(f"ELLIS ledger outstanding: JPY {ledger_jpy:,.0f} ({ledger_n} invoices). Reported by OP as payment received but not yet updated in ELLIS (AC team): JPY {pending_jpy:,.0f} ({pending_n} invoices; {reopen_n} of them reopened for a rate change, JPY {reopen_jpy:,.0f}). Open customer receivables after those receipts: JPY {ledger_jpy - pending_jpy:,.0f} ({ledger_n - pending_n} invoices).")
     if pending_n:
         notes.append("Receipts taken from the OP 'Noted' column are assumed to cover the full ELLIS balance of the invoice; amounts become exact once AC updates ELLIS.")
+    if payer_mismatch:
+        notes.append("OP note names a different seller, so the payment is NOT counted as received (confirm with VNOP): " + "; ".join(payer_mismatch) + ".")
     if internal_rows:
         by_name = {}
         for name, _, ccy, bal, jpy in internal_rows:
