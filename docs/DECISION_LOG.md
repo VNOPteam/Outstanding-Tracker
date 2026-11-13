@@ -145,4 +145,6 @@ Each phase records: decisions taken, evidence, and the risks that remain open at
 
 | D51 | **Hand-over to a second operator (2026-10-25)**: the weekly run can be done by VNOP on their own PC with Claude Code. Teams posting there is manual: the runner always writes `automation/out/teams-chat-message.txt` (plain-text twin of the card, password included when `TEAMS_CARD_PASSWORD` is not false) for copy-and-paste into the "Outstanding" chat; Graph posting stays Aiden-only. `docs/OPERATOR_GUIDE_EN.md` is the operator spec (setup, weekly routine, stop conditions); the project skill covers both modes. | User request ("비키가 직접 할 수 있도록 명세서 영어로"). |
 
+| D52 | **PIC for two sellers without an owner (2026-11-13)**: HUA MIN TOURISM (200205, Tier 2) and (API) SUZHOU YILV SUNSHINE TRAVEL AGENCY CO.,LTD. (200250, Tier 3) = Grace, added to `automation/config/pic-overrides.json`. The Tier sheet lists both with no PIC; the override applies from the next weekly run. | Operator (Vicky): "pic là Grace". |
+
 Results and remaining risks: `docs/QA_REPORT.md`.
